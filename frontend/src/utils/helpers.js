@@ -1,33 +1,44 @@
-// Format currency with commas
-export const formatCurrency = (amount) => {
-  return amount.toLocaleString('en-US', {
+// Format currency values
+export const formatCurrency = (value) => {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2
-  });
+  }).format(value);
 };
 
-// Calculate savings percentage
-export const calculateSavings = (original, optimized) => {
-  return Math.round(((original - optimized) / original) * 100);
+// Format large numbers with commas
+export const formatNumber = (value) => {
+  return new Intl.NumberFormat('en-US').format(value);
 };
 
-// Generate CSV content
-export const generateCSV = (data) => {
-  const headers = Object.keys(data).join(',');
-  const values = Object.values(data).join(',');
-  return `${headers}\n${values}`;
+// Calculate percentage difference
+export const calculatePercentageDifference = (a, b) => {
+  return ((a - b) / ((a + b) / 2)) * 100;
 };
 
-// Validate calculator inputs
-export const validateInputs = (inputs) => {
-  const errors = {};
-  
-  if (!inputs.provider) errors.provider = 'Provider is required';
-  if (!inputs.service) errors.service = 'Service is required';
-  if (!inputs.region) errors.region = 'Region is required';
-  if (inputs.hours <= 0) errors.hours = 'Hours must be positive';
-  if (inputs.quantity <= 0) errors.quantity = 'Quantity must be positive';
-  
-  return errors;
+// Get the cheapest provider from cost data
+export const getCheapestProvider = (costData) => {
+  const providers = Object.entries(costData);
+  return providers.reduce((cheapest, current) => 
+    current[1].total < cheapest[1].total ? current : cheapest
+  )[0];
+};
+
+// Generate a unique ID
+export const generateId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
+
+// Debounce function for limiting API calls
+export const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 };
