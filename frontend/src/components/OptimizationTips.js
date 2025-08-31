@@ -1,88 +1,85 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getOptimizationTips } from '../services/api';
+import './OptimizationTips.css';
 
 const OptimizationTips = ({ data }) => {
-  const getOptimizationTips = (providerData, provider) => {
-    const tips = [];
-    
-    // Compute optimization tips
-    if (providerData.compute > 50) {
-      tips.push(`Consider using reserved instances for ${provider} to save up to 40% on compute costs.`);
-    }
-    
-    if (providerData.compute > 100 && provider === 'aws') {
-      tips.push('AWS Spot Instances could reduce your compute costs by up to 70% for fault-tolerant workloads.');
-    }
-    
-    // Storage optimization tips
-    if (providerData.storage > 100) {
-      tips.push(`Evaluate moving infrequently accessed data to cold storage on ${provider} to reduce storage costs.`);
-    }
-    
-    if (providerData.storage > 500) {
-      tips.push(`Consider implementing data lifecycle policies on ${provider} to automatically transition data to cheaper storage tiers.`);
-    }
-    
-    // Bandwidth optimization tips
-    if (providerData.bandwidth > 50) {
-      tips.push(`Use CDN services from ${provider} to reduce bandwidth costs and improve performance.`);
-    }
-    
-    return tips;
-  };
+  const [tips, setTips] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const awsTips = getOptimizationTips(data.aws, 'AWS');
-  const azureTips = getOptimizationTips(data.azure, 'Azure');
-  const gcpTips = getOptimizationTips(data.gcp, 'GCP');
+  useEffect(() => {
+    const fetchTips = async () => {
+      try {
+        setLoading(true);
+        const response = await getOptimizationTips(data);
+        setTips(response.optimization_tips || []);
+      } catch (error) {
+        console.error('Error fetching optimization tips:', error);
+        setTips([
+          "Unable to load optimization tips. Please try again later.",
+          "Consider using reserved instances for long-term workloads.",
+          "Implement auto-scaling to match resource allocation with demand."
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTips();
+  }, [data]);
+
+  if (loading) {
+    return (
+      <div className="optimization-tips">
+        <h2>Optimization Tips</h2>
+        <div className="loading">Loading optimization tips...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="optimization-tips">
       <h2>Optimization Tips</h2>
       
-      <div className="provider-tips">
-        <div className="tip-section">
-          <h3>AWS Optimization Tips</h3>
+      <div className="tips-container">
+        <div className="general-tips">
+          <h3>General Cost Optimization Strategies</h3>
           <ul>
-            {awsTips.length > 0 ? (
-              awsTips.map((tip, index) => <li key={index}>{tip}</li>)
-            ) : (
-              <li>Your AWS costs are already optimized for the current workload.</li>
-            )}
+            {tips.map((tip, index) => (
+              <li key={index}>{tip}</li>
+            ))}
           </ul>
         </div>
         
-        <div className="tip-section">
-          <h3>Azure Optimization Tips</h3>
-          <ul>
-            {azureTips.length > 0 ? (
-              azureTips.map((tip, index) => <li key={index}>{tip}</li>)
-            ) : (
-              <li>Your Azure costs are already optimized for the current workload.</li>
-            )}
-          </ul>
+        <div className="provider-specific">
+          <h3>Provider-Specific Recommendations</h3>
+          
+          <div className="provider-section">
+            <h4>AWS</h4>
+            <ul>
+              <li>Use AWS Reserved Instances for predictable workloads to save up to 40%</li>
+              <li>Consider Spot Instances for fault-tolerant workloads to save up to 70%</li>
+              <li>Implement S3 Lifecycle Policies to automatically transition data to cheaper storage classes</li>
+            </ul>
+          </div>
+          
+          <div className="provider-section">
+            <h4>Azure</h4>
+            <ul>
+              <li>Use Azure Reserved VM Instances for significant cost savings</li>
+              <li>Consider Azure Spot VMs for batch processing and non-critical workloads</li>
+              <li>Implement Azure Blob Storage tiering to optimize storage costs</li>
+            </ul>
+          </div>
+          
+          <div className="provider-section">
+            <h4>GCP</h4>
+            <ul>
+              <li>Use Committed Use Discounts for predictable workloads</li>
+              <li>Consider Preemptible VMs for fault-tolerant workloads</li>
+              <li>Implement Cloud Storage classes to optimize storage costs based on access patterns</li>
+            </ul>
+          </div>
         </div>
-        
-        <div className="tip-section">
-          <h3>GCP Optimization Tips</h3>
-          <ul>
-            {gcpTips.length > 0 ? (
-              gcpTips.map((tip, index) => <li key={index}>{tip}</li>)
-            ) : (
-              <li>Your GCP costs are already optimized for the current workload.</li>
-            )}
-          </ul>
-        </div>
-      </div>
-      
-      <div className="general-tips">
-        <h3>General Cost Optimization Strategies</h3>
-        <ul>
-          <li>Regularly review and right-size your instances based on utilization metrics</li>
-          <li>Implement auto-scaling to match workload demands</li>
-          <li>Use heat maps to identify patterns and schedule non-production resources</li>
-          <li>Leverage spot or preemptible instances for fault-tolerant workloads</li>
-          <li>Implement tagging policies to track cost allocation</li>
-          <li>Regularly delete unattached storage volumes and snapshots</li>
-        </ul>
       </div>
     </div>
   );
