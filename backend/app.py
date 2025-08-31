@@ -7,6 +7,11 @@ from core.calculator import calculate_total_cost
 from core.optimizer import get_optimization_tips
 from middleware.cache import cache
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
@@ -17,12 +22,13 @@ cache.init_app(app)
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    return jsonify({"status": "healthy"})
+    return jsonify({"status": "healthy", "service": "cloudcost-compass"})
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate():
     try:
         data = request.get_json()
+        logger.info(f"Calculation request received: {data}")
         
         # Calculate costs for each provider
         aws_cost = calculate_aws_cost(data)
@@ -36,28 +42,30 @@ def calculate():
         
         response = {
             "aws": {
-                "compute": aws_cost.get('compute', 0),
-                "storage": aws_cost.get('storage', 0),
-                "bandwidth": aws_cost.get('bandwidth', 0),
-                "total": aws_total
+                "compute": round(aws_cost.get('compute', 0), 2),
+                "storage": round(aws_cost.get('storage', 0), 2),
+                "bandwidth": round(aws_cost.get('bandwidth', 0), 2),
+                "total": round(aws_total, 2)
             },
             "azure": {
-                "compute": azure_cost.get('compute', 0),
-                "storage": azure_cost.get('storage', 0),
-                "bandwidth": azure_cost.get('bandwidth', 0),
-                "total": azure_total
+                "compute": round(azure_cost.get('compute', 0), 2),
+                "storage": round(azure_cost.get('storage', 0), 2),
+                "bandwidth": round(azure_cost.get('bandwidth', 0), 2),
+                "total": round(azure_total, 2)
             },
             "gcp": {
-                "compute": gcp_cost.get('compute', 0),
-                "storage": gcp_cost.get('storage', 0),
-                "bandwidth": gcp_cost.get('bandwidth', 0),
-                "total": gcp_total
+                "compute": round(gcp_cost.get('compute', 0), 2),
+                "storage": round(gcp_cost.get('storage', 0), 2),
+                "bandwidth": round(gcp_cost.get('bandwidth', 0), 2),
+                "total": round(gcp_total, 2)
             }
         }
         
+        logger.info(f"Calculation completed: {response}")
         return jsonify(response)
     
     except Exception as e:
+        logger.error(f"Calculation error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/optimize', methods=['POST'])
@@ -69,24 +77,27 @@ def optimize():
         return jsonify({"optimization_tips": tips})
     
     except Exception as e:
+        logger.error(f"Optimization error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/pricing/<provider>', methods=['GET'])
 @cache.cached(timeout=3600)  # Cache for 1 hour
 def get_pricing(provider):
     try:
-        # This would typically fetch from a database or external API
-        # For now, we'll return mock data
         if provider == 'aws':
-            return jsonify({"message": "AWS pricing data", "source": "static"})
+            from api.aws_pricing import load_aws_pricing
+            return jsonify(load_aws_pricing())
         elif provider == 'azure':
-            return jsonify({"message": "Azure pricing data", "source": "static"})
+            from api.azure_pricing import load_azure_pricing
+            return jsonify(load_azure_pricing())
         elif provider == 'gcp':
-            return jsonify({"message": "GCP pricing data", "source": "static"})
+            from api.gcp_pricing import load_gcp_pricing
+            return jsonify(load_gcp_pricing())
         else:
             return jsonify({"error": "Invalid provider"}), 400
     
     except Exception as e:
+        logger.error(f"Pricing error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
