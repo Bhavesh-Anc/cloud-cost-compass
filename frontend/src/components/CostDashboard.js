@@ -7,8 +7,12 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
+import './CostDashboard.css';
 
 const CostDashboard = ({ data }) => {
   const chartData = [
@@ -16,6 +20,14 @@ const CostDashboard = ({ data }) => {
     { name: 'Azure', compute: data.azure.compute, storage: data.azure.storage, bandwidth: data.azure.bandwidth, total: data.azure.total },
     { name: 'GCP', compute: data.gcp.compute, storage: data.gcp.storage, bandwidth: data.gcp.bandwidth, total: data.gcp.total }
   ];
+
+  const pieData = [
+    { name: 'Compute', value: data.aws.compute + data.azure.compute + data.gcp.compute },
+    { name: 'Storage', value: data.aws.storage + data.azure.storage + data.gcp.storage },
+    { name: 'Bandwidth', value: data.aws.bandwidth + data.azure.bandwidth + data.gcp.bandwidth }
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
   return (
     <div className="cost-dashboard">
@@ -53,34 +65,60 @@ const CostDashboard = ({ data }) => {
         </div>
       </div>
 
-      <div className="chart-container">
-        <h3>Cost Comparison</h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="compute" fill="#8884d8" name="Compute" />
-            <Bar dataKey="storage" fill="#82ca9d" name="Storage" />
-            <Bar dataKey="bandwidth" fill="#ffc658" name="Bandwidth" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      <div className="charts-container">
+        <div className="chart">
+          <h3>Cost Comparison by Provider</h3>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Cost']} />
+              <Legend />
+              <Bar dataKey="compute" fill="#8884d8" name="Compute" />
+              <Bar dataKey="storage" fill="#82ca9d" name="Storage" />
+              <Bar dataKey="bandwidth" fill="#ffc658" name="Bandwidth" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
-      <div className="chart-container">
-        <h3>Total Costs</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="total" fill="#8884d8" name="Total Cost" />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="chart">
+          <h3>Total Costs by Provider</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Total Cost']} />
+              <Legend />
+              <Bar dataKey="total" fill="#8884d8" name="Total Cost" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="chart">
+          <h3>Cost Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Cost']} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );
