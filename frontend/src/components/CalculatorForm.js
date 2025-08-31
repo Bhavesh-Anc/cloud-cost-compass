@@ -10,24 +10,25 @@ const CalculatorForm = ({ onCalculate }) => {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState(null);
 
   const validateForm = () => {
     const newErrors = {};
     
-    if (formData.compute.hours < 0) {
-      newErrors.computeHours = "Hours cannot be negative";
+    if (formData.compute.hours < 0 || formData.compute.hours > 8760) {
+      newErrors.computeHours = "Hours must be between 0 and 8760 (1 year)";
     }
     
-    if (formData.compute.instances < 1) {
-      newErrors.computeInstances = "At least one instance is required";
+    if (formData.compute.instances < 1 || formData.compute.instances > 1000) {
+      newErrors.computeInstances = "Instances must be between 1 and 1000";
     }
     
-    if (formData.storage.size < 0) {
-      newErrors.storageSize = "Storage size cannot be negative";
+    if (formData.storage.size < 0 || formData.storage.size > 100000) {
+      newErrors.storageSize = "Storage size must be between 0 and 100,000 GB";
     }
     
-    if (formData.bandwidth.amount < 0) {
-      newErrors.bandwidth = "Bandwidth cannot be negative";
+    if (formData.bandwidth.amount < 0 || formData.bandwidth.amount > 10000) {
+      newErrors.bandwidth = "Bandwidth must be between 0 and 10,000 GB";
     }
     
     setErrors(newErrors);
@@ -42,6 +43,11 @@ const CalculatorForm = ({ onCalculate }) => {
         [field]: value
       }
     }));
+    
+    // Clear API error when user makes changes
+    if (apiError) {
+      setApiError(null);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -52,12 +58,14 @@ const CalculatorForm = ({ onCalculate }) => {
     }
     
     setLoading(true);
+    setApiError(null);
+    
     try {
       const result = await calculateCost(formData);
       onCalculate(result);
     } catch (error) {
       console.error('Error calculating cost:', error);
-      alert('Failed to calculate costs. Please try again.');
+      setApiError(error.message);
     } finally {
       setLoading(false);
     }
@@ -66,6 +74,15 @@ const CalculatorForm = ({ onCalculate }) => {
   return (
     <div className="calculator-form">
       <h2>Cloud Cost Calculator</h2>
+      
+      {apiError && (
+        <div className="api-error">
+          <h3>Error</h3>
+          <p>{apiError}</p>
+          <p>Please make sure the backend server is running on port 5000.</p>
+        </div>
+      )}
+      
       <form onSubmit={handleSubmit}>
         <div className="form-section">
           <h3>Compute Resources</h3>
@@ -77,6 +94,7 @@ const CalculatorForm = ({ onCalculate }) => {
                 value={formData.compute.hours}
                 onChange={(e) => handleInputChange('compute', 'hours', parseInt(e.target.value) || 0)}
                 min="0"
+                max="8760"
                 className={errors.computeHours ? 'error' : ''}
               />
               {errors.computeHours && <span className="error-text">{errors.computeHours}</span>}
@@ -90,6 +108,7 @@ const CalculatorForm = ({ onCalculate }) => {
                 value={formData.compute.instances}
                 onChange={(e) => handleInputChange('compute', 'instances', parseInt(e.target.value) || 1)}
                 min="1"
+                max="1000"
                 className={errors.computeInstances ? 'error' : ''}
               />
               {errors.computeInstances && <span className="error-text">{errors.computeInstances}</span>}
@@ -120,6 +139,7 @@ const CalculatorForm = ({ onCalculate }) => {
                 value={formData.storage.size}
                 onChange={(e) => handleInputChange('storage', 'size', parseInt(e.target.value) || 0)}
                 min="0"
+                max="100000"
                 className={errors.storageSize ? 'error' : ''}
               />
               {errors.storageSize && <span className="error-text">{errors.storageSize}</span>}
@@ -150,6 +170,7 @@ const CalculatorForm = ({ onCalculate }) => {
                 value={formData.bandwidth.amount}
                 onChange={(e) => handleInputChange('bandwidth', 'amount', parseInt(e.target.value) || 0)}
                 min="0"
+                max="10000"
                 className={errors.bandwidth ? 'error' : ''}
               />
               {errors.bandwidth && <span className="error-text">{errors.bandwidth}</span>}

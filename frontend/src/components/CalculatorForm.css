@@ -10,6 +10,21 @@
 .calculator-form h2 {
   color: #333;
   margin-bottom: 20px;
+  text-align: center;
+}
+
+.api-error {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border-left: 4px solid #c62828;
+}
+
+.api-error h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
 }
 
 .form-section {
@@ -78,4 +93,14 @@
 .calculator-form button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .calculator-form {
+    padding: 15px;
+  }
+  
+  .form-section {
+    padding: 10px;
+  }
 }

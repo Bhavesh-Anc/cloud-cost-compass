@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS for all routes
 
 # Configure caching
 app.config['CACHE_TYPE'] = 'simple'
@@ -30,6 +30,10 @@ def calculate():
         data = request.get_json()
         logger.info(f"Calculation request received: {data}")
         
+        # Validate the request data
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
         # Calculate costs for each provider
         aws_cost = calculate_aws_cost(data)
         azure_cost = calculate_azure_cost(data)
@@ -66,12 +70,15 @@ def calculate():
     
     except Exception as e:
         logger.error(f"Calculation error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Failed to calculate costs: {str(e)}"}), 500
 
 @app.route('/api/optimize', methods=['POST'])
 def optimize():
     try:
         data = request.get_json()
+        if not data or 'cost_data' not in data:
+            return jsonify({"error": "No cost data provided"}), 400
+            
         cost_data = data.get('cost_data', {})
         tips = get_optimization_tips(cost_data)
         return jsonify({"optimization_tips": tips})

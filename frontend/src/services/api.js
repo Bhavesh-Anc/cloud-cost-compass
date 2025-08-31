@@ -7,6 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Add a request interceptor to log requests
@@ -29,11 +30,22 @@ api.interceptors.response.use(
   },
   (error) => {
     console.error('Response error:', error);
+    
+    let errorMessage = 'Network error. Please check your connection.';
+    
     if (error.response) {
-      console.error('Error data:', error.response.data);
-      console.error('Error status:', error.response.status);
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      errorMessage = error.response.data?.error || `Server error: ${error.response.status}`;
+    } else if (error.request) {
+      // The request was made but no response was received
+      errorMessage = 'No response from server. Please make sure the backend is running.';
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      errorMessage = error.message;
     }
-    return Promise.reject(error);
+    
+    return Promise.reject(new Error(errorMessage));
   }
 );
 
@@ -43,7 +55,7 @@ export const calculateCost = async (calculationData) => {
     return response.data;
   } catch (error) {
     console.error('API Error calculating cost:', error);
-    throw new Error(error.response?.data?.error || 'Failed to calculate costs');
+    throw new Error(error.message || 'Failed to calculate costs');
   }
 };
 
@@ -53,7 +65,7 @@ export const getOptimizationTips = async (costData) => {
     return response.data;
   } catch (error) {
     console.error('API Error getting optimization tips:', error);
-    throw new Error(error.response?.data?.error || 'Failed to get optimization tips');
+    throw new Error(error.message || 'Failed to get optimization tips');
   }
 };
 
@@ -63,19 +75,7 @@ export const getPricingData = async (provider) => {
     return response.data;
   } catch (error) {
     console.error('API Error getting pricing data:', error);
-    throw new Error(error.response?.data?.error || 'Failed to get pricing data');
-  }
-};
-
-export const generateReport = async (reportData) => {
-  try {
-    const response = await api.post('/api/report', reportData, {
-      responseType: 'blob'
-    });
-    return response.data;
-  } catch (error) {
-    console.error('API Error generating report:', error);
-    throw new Error(error.response?.data?.error || 'Failed to generate report');
+    throw new Error(error.message || 'Failed to get pricing data');
   }
 };
 
