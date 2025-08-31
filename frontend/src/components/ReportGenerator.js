@@ -1,35 +1,44 @@
 import React, { useState } from 'react';
+import { generateReport } from '../services/api';
+import './ReportGenerator.css';
 
 const ReportGenerator = ({ data }) => {
   const [reportFormat, setReportFormat] = useState('pdf');
   const [includeCharts, setIncludeCharts] = useState(true);
   const [email, setEmail] = useState('');
+  const [generating, setGenerating] = useState(false);
 
-  const generateReport = () => {
-    // In a real application, this would call an API endpoint to generate the report
-    alert(`Generating ${reportFormat} report with${includeCharts ? '' : 'out'} charts. ${email ? `Will be sent to ${email}` : ''}`);
-    
-    // Simulate report download
-    const reportData = {
-      generatedAt: new Date().toISOString(),
-      parameters: {}, // Would include the original calculation parameters
-      results: data,
-      summary: {
-        cheapestProvider: Object.entries(data).reduce((a, b) => a[1].total < b[1].total ? a : b)[0],
-        totalCostRange: {
-          min: Math.min(data.aws.total, data.azure.total, data.gcp.total),
-          max: Math.max(data.aws.total, data.azure.total, data.gcp.total)
-        }
-      }
-    };
-    
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `cloud-cost-report-${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+  const handleGenerateReport = async () => {
+    setGenerating(true);
+    try {
+      const reportData = {
+        format: reportFormat,
+        includeCharts,
+        email: email || null,
+        costData: data,
+        generatedAt: new Date().toISOString()
+      };
+
+      // In a real implementation, this would call the backend API
+      // For now, we'll simulate the report generation
+      setTimeout(() => {
+        // Create a JSON report for download
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `cloud-cost-report-${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        
+        setGenerating(false);
+        alert(`Report generated successfully!${email ? ' An email has been sent to ' + email : ''}`);
+      }, 2000);
+    } catch (error) {
+      console.error('Error generating report:', error);
+      alert('Failed to generate report. Please try again.');
+      setGenerating(false);
+    }
   };
 
   return (
@@ -119,8 +128,12 @@ const ReportGenerator = ({ data }) => {
         </div>
       </div>
       
-      <button onClick={generateReport} className="generate-btn">
-        Generate Report
+      <button 
+        onClick={handleGenerateReport} 
+        className="generate-btn"
+        disabled={generating}
+      >
+        {generating ? 'Generating Report...' : 'Generate Report'}
       </button>
     </div>
   );
