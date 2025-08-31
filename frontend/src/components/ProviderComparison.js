@@ -14,6 +14,7 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
+import './ProviderComparison.css';
 
 const ProviderComparison = ({ data }) => {
   const radarData = [
@@ -43,6 +44,8 @@ const ProviderComparison = ({ data }) => {
   };
 
   const cheapest = cheapestProvider();
+  const mostExpensive = Math.max(data.aws.total, data.azure.total, data.gcp.total);
+  const savingsPercentage = ((mostExpensive - cheapest.total) / mostExpensive) * 100;
 
   return (
     <div className="provider-comparison">
@@ -53,42 +56,41 @@ const ProviderComparison = ({ data }) => {
         <div className="cheapest-card">
           <h4>{cheapest.name}</h4>
           <p className="cost">${cheapest.total.toFixed(2)}/month</p>
-          <p>Estimated savings of {
-            ((Math.max(data.aws.total, data.azure.total, data.gcp.total) - cheapest.total) / 
-            Math.max(data.aws.total, data.azure.total, data.gcp.total) * 100).toFixed(1)
-          }% compared to the most expensive option</p>
+          <p>Estimated savings of {savingsPercentage.toFixed(1)}% compared to the most expensive option</p>
         </div>
       </div>
 
-      <div className="chart-container">
-        <h3>Cost Breakdown Comparison</h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={barData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="compute" fill="#8884d8" name="Compute" />
-            <Bar dataKey="storage" fill="#82ca9d" name="Storage" />
-            <Bar dataKey="bandwidth" fill="#ffc658" name="Bandwidth" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      <div className="charts-container">
+        <div className="chart">
+          <h3>Cost Breakdown Comparison</h3>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={barData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Cost']} />
+              <Legend />
+              <Bar dataKey="compute" fill="#8884d8" name="Compute" />
+              <Bar dataKey="storage" fill="#82ca9d" name="Storage" />
+              <Bar dataKey="bandwidth" fill="#ffc658" name="Bandwidth" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
-      <div className="chart-container">
-        <h3>Provider Capabilities Radar Chart</h3>
-        <ResponsiveContainer width="100%" height={400}>
-          <RadarChart data={radarData}>
-            <PolarGrid />
-            <PolarAngleAxis dataKey="subject" />
-            <PolarRadiusAxis />
-            <Radar name="AWS" dataKey="AWS" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-            <Radar name="Azure" dataKey="Azure" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
-            <Radar name="GCP" dataKey="GCP" stroke="#ffc658" fill="#ffc658" fillOpacity={0.6} />
-            <Legend />
-          </RadarChart>
-        </ResponsiveContainer>
+        <div className="chart">
+          <h3>Provider Capabilities Radar Chart</h3>
+          <ResponsiveContainer width="100%" height={400}>
+            <RadarChart data={radarData}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="subject" />
+              <PolarRadiusAxis />
+              <Radar name="AWS" dataKey="AWS" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+              <Radar name="Azure" dataKey="Azure" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
+              <Radar name="GCP" dataKey="GCP" stroke="#ffc658" fill="#ffc658" fillOpacity={0.6} />
+              <Legend />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <div className="cost-differences">
