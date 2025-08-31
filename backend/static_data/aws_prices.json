@@ -1,0 +1,8 @@
+[
+  {
+    "service": "ec2",
+    "instance": "t3.micro",
+    "region": "us-east-1",
+    "price": 0.0116
+  }
+]
