@@ -1,96 +1,137 @@
 import React from 'react';
-import { Bar } from 'react-chartjs-2';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   Legend
-} from 'chart.js';
+} from 'recharts';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+const ProviderComparison = ({ data }) => {
+  const radarData = [
+    { subject: 'Compute', AWS: data.aws.compute, Azure: data.azure.compute, GCP: data.gcp.compute, fullMark: Math.max(data.aws.compute, data.azure.compute, data.gcp.compute) * 1.2 },
+    { subject: 'Storage', AWS: data.aws.storage, Azure: data.azure.storage, GCP: data.gcp.storage, fullMark: Math.max(data.aws.storage, data.azure.storage, data.gcp.storage) * 1.2 },
+    { subject: 'Bandwidth', AWS: data.aws.bandwidth, Azure: data.azure.bandwidth, GCP: data.gcp.bandwidth, fullMark: Math.max(data.aws.bandwidth, data.azure.bandwidth, data.gcp.bandwidth) * 1.2 },
+    { subject: 'Total', AWS: data.aws.total, Azure: data.azure.total, GCP: data.gcp.total, fullMark: Math.max(data.aws.total, data.azure.total, data.gcp.total) * 1.2 },
+  ];
 
-export default function ProviderComparison({ data }) {
-  const providers = data.map(item => item.provider.toUpperCase());
-  const costs = data.map(item => item.total_cost);
-  
-  const chartData = {
-    labels: providers,
-    datasets: [
-      {
-        label: 'Total Cost ($)',
-        data: costs,
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.7)',
-          'rgba(54, 162, 235, 0.7)',
-          'rgba(75, 192, 192, 0.7)'
-        ],
-        borderColor: [
-          'rgb(255, 99, 132)',
-          'rgb(54, 162, 235)',
-          'rgb(75, 192, 192)'
-        ],
-        borderWidth: 1
-      }
-    ]
+  const barData = [
+    { name: 'AWS', compute: data.aws.compute, storage: data.aws.storage, bandwidth: data.aws.bandwidth, total: data.aws.total },
+    { name: 'Azure', compute: data.azure.compute, storage: data.azure.storage, bandwidth: data.azure.bandwidth, total: data.azure.total },
+    { name: 'GCP', compute: data.gcp.compute, storage: data.gcp.storage, bandwidth: data.gcp.bandwidth, total: data.gcp.total }
+  ];
+
+  // Find the cheapest provider
+  const cheapestProvider = () => {
+    const providers = [
+      { name: 'AWS', total: data.aws.total },
+      { name: 'Azure', total: data.azure.total },
+      { name: 'GCP', total: data.gcp.total }
+    ];
+    
+    return providers.reduce((cheapest, current) => 
+      current.total < cheapest.total ? current : cheapest
+    );
   };
 
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Cloud Cost Comparison',
-        font: {
-          size: 18
-        }
-      }
-    }
-  };
+  const cheapest = cheapestProvider();
 
   return (
-    <div className="card">
+    <div className="provider-comparison">
       <h2>Provider Comparison</h2>
-      <div style={{ height: '400px', marginTop: '20px' }}>
-        <Bar data={chartData} options={options} />
-      </div>
       
-      <div className="comparison-table" style={{ marginTop: '30px' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="cheapest-provider">
+        <h3>Most Cost-Effective Provider</h3>
+        <div className="cheapest-card">
+          <h4>{cheapest.name}</h4>
+          <p className="cost">${cheapest.total.toFixed(2)}/month</p>
+          <p>Estimated savings of {
+            ((Math.max(data.aws.total, data.azure.total, data.gcp.total) - cheapest.total) / 
+            Math.max(data.aws.total, data.azure.total, data.gcp.total) * 100).toFixed(1)
+          }% compared to the most expensive option</p>
+        </div>
+      </div>
+
+      <div className="chart-container">
+        <h3>Cost Breakdown Comparison</h3>
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={barData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="compute" fill="#8884d8" name="Compute" />
+            <Bar dataKey="storage" fill="#82ca9d" name="Storage" />
+            <Bar dataKey="bandwidth" fill="#ffc658" name="Bandwidth" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="chart-container">
+        <h3>Provider Capabilities Radar Chart</h3>
+        <ResponsiveContainer width="100%" height={400}>
+          <RadarChart data={radarData}>
+            <PolarGrid />
+            <PolarAngleAxis dataKey="subject" />
+            <PolarRadiusAxis />
+            <Radar name="AWS" dataKey="AWS" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+            <Radar name="Azure" dataKey="Azure" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
+            <Radar name="GCP" dataKey="GCP" stroke="#ffc658" fill="#ffc658" fillOpacity={0.6} />
+            <Legend />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="cost-differences">
+        <h3>Cost Differences</h3>
+        <table>
           <thead>
             <tr>
-              <th>Provider</th>
-              <th>Service</th>
-              <th>Region</th>
-              <th>Unit Price ($/hr)</th>
-              <th>Total Cost</th>
+              <th>Comparison</th>
+              <th>AWS vs Azure</th>
+              <th>AWS vs GCP</th>
+              <th>Azure vs GCP</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((item, index) => (
-              <tr key={index}>
-                <td>{item.provider.toUpperCase()}</td>
-                <td>{item.service}</td>
-                <td>{item.region}</td>
-                <td>${item.unit_price.toFixed(4)}</td>
-                <td>${item.total_cost.toFixed(2)}</td>
-              </tr>
-            ))}
+            <tr>
+              <td>Compute Difference</td>
+              <td>${Math.abs(data.aws.compute - data.azure.compute).toFixed(2)}</td>
+              <td>${Math.abs(data.aws.compute - data.gcp.compute).toFixed(2)}</td>
+              <td>${Math.abs(data.azure.compute - data.gcp.compute).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td>Storage Difference</td>
+              <td>${Math.abs(data.aws.storage - data.azure.storage).toFixed(2)}</td>
+              <td>${Math.abs(data.aws.storage - data.gcp.storage).toFixed(2)}</td>
+              <td>${Math.abs(data.azure.storage - data.gcp.storage).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td>Bandwidth Difference</td>
+              <td>${Math.abs(data.aws.bandwidth - data.azure.bandwidth).toFixed(2)}</td>
+              <td>${Math.abs(data.aws.bandwidth - data.gcp.bandwidth).toFixed(2)}</td>
+              <td>${Math.abs(data.azure.bandwidth - data.gcp.bandwidth).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td>Total Difference</td>
+              <td>${Math.abs(data.aws.total - data.azure.total).toFixed(2)}</td>
+              <td>${Math.abs(data.aws.total - data.gcp.total).toFixed(2)}</td>
+              <td>${Math.abs(data.azure.total - data.gcp.total).toFixed(2)}</td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
   );
-}
+};
+
+export default ProviderComparison;
