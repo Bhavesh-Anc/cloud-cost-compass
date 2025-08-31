@@ -1,52 +1,40 @@
-import requests
-import os
 import json
-from backend.middleware.cache import get_cached_response, cache_response
+import os
 
-def get_gcp_prices():
-    # Check cache first
-    cached = get_cached_response("pricing:gcp")
-    if cached:
-        return cached
-    
-    # Use GCP Cloud Billing API
-    API_KEY = os.getenv('GCP_API_KEY')
-    PROJECT_ID = os.getenv('GCP_PROJECT_ID')
-    
-    if not API_KEY or not PROJECT_ID:
-        # Fallback to static data if no API keys
-        return load_static_data("gcp")
-    
-    url = f"https://cloudbilling.googleapis.com/v1/services/6F81-5844-456A/skus?key={API_KEY}"
-    
-    try:
-        response = requests.get(url)
-        data = response.json()
-        
-        # Process GCP pricing data (simplified)
-        pricing_data = []
-        for sku in data.get('skus', []):
-            if 'compute' in sku.get('category', {}).get('serviceDisplayName', '').lower():
-                for pricing_info in sku.get('pricingInfo', []):
-                    price = pricing_info['pricingExpression']['tieredRates'][0]['unitPrice']['units']
-                    region = sku.get('serviceRegions', ['global'])[0]
-                    
-                    pricing_data.append({
-                        "service": "compute",
-                        "instance": sku['description'],
-                        "region": region,
-                        "price": float(price) if price else 0.0
-                    })
-        
-        # Cache the data
-        cache_response("pricing:gcp", pricing_data)
-        return pricing_data
-        
-    except Exception as e:
-        print(f"Error fetching GCP prices: {e}")
-        return load_static_data("gcp")
-
-def load_static_data(provider):
-    # Load from a static file if API fails
-    with open(f'static_data/{provider}_prices.json') as f:
+# Load GCP pricing data
+def load_gcp_pricing():
+    file_path = os.path.join(os.path.dirname(__file__), '../static_data/gcp_prices.json')
+    with open(file_path, 'r') as f:
         return json.load(f)
+
+# Calculate GCP costs based on resource requirements
+def calculate_gcp_cost(resources):
+    pricing_data = load_gcp_pricing()
+    
+    compute_hours = resources.get('compute', {}).get('hours', 0)
+    instances = resources.get('compute', {}).get('instances', 1)
+    compute_type = resources.get('compute', {}).get('type', 'general')
+    
+    storage_size = resources.get('storage', {}).get('size', 0)
+    storage_type = resources.get('storage', {}).get('type', 'standard')
+    
+    bandwidth = resources.get('bandwidth', {}).get('amount', 0)
+    
+    # Calculate compute cost
+    compute_rate = pricing_data['compute'][compute_type]['hourly']
+    compute_cost = compute_hours * instances * compute_rate
+    
+    # Calculate storage cost
+    storage_rate = pricing_data['storage'][storage_type]['monthly']
+    storage_cost = storage_size * storage_rate
+    
+    # Calculate bandwidth cost
+    bandwidth_rate = pricing_data['bandwidth']['outbound']['rate']
+    free_tier = pricing_data['bandwidth']['outbound']['free_tier']
+    bandwidth_cost = max(0, bandwidth - free_tier) * bandwidth_rate
+    
+    return {
+        'compute': compute_cost,
+        'storage': storage_cost,
+        'bandwidth': bandwidth_cost
+    }
