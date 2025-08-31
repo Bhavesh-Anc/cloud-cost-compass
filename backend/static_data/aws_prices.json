@@ -1,8 +1,37 @@
-[
-  {
-    "service": "ec2",
-    "instance": "t3.micro",
-    "region": "us-east-1",
-    "price": 0.0116
+{
+  "compute": {
+    "general": {
+      "hourly": 0.092,
+      "monthly": 67.0
+    },
+    "compute": {
+      "hourly": 0.136,
+      "monthly": 99.0
+    },
+    "memory": {
+      "hourly": 0.186,
+      "monthly": 135.0
+    }
+  },
+  "storage": {
+    "standard": {
+      "monthly": 0.023
+    },
+    "ssd": {
+      "monthly": 0.125
+    },
+    "archive": {
+      "monthly": 0.004
+    }
+  },
+  "bandwidth": {
+    "outbound": {
+      "rate": 0.09,
+      "free_tier": 100
+    },
+    "inbound": {
+      "rate": 0.0,
+      "free_tier": 0
+    }
   }
-]
+}
