@@ -1,37 +1,26 @@
 import unittest
-from backend.core.calculator import CostCalculator
+from backend.core.calculator import calculate_total_cost, calculate_monthly_cost, calculate_annual_cost
 
-class TestCostCalculator(unittest.TestCase):
-    def test_aws_calculation(self):
-        calculator = CostCalculator("aws")
-        # Mock data
-        calculator.price_data = [
-            {"service": "ec2", "region": "us-east-1", "instance": "t3.micro", "price": 0.0116}
-        ]
-        result = calculator.calculate("ec2", "us-east-1", 720, 1)
-        self.assertEqual(result['total_cost'], 0.0116 * 720)
+class TestCalculator(unittest.TestCase):
+    def test_calculate_total_cost(self):
+        cost_breakdown = {
+            'compute': 100.0,
+            'storage': 50.0,
+            'bandwidth': 25.0
+        }
+        
+        total = calculate_total_cost(cost_breakdown)
+        self.assertEqual(total, 175.0)
+    
+    def test_calculate_monthly_cost(self):
+        hourly_cost = 0.5
+        monthly_cost = calculate_monthly_cost(hourly_cost)
+        self.assertEqual(monthly_cost, 365.0)  # 0.5 * 730
+    
+    def test_calculate_annual_cost(self):
+        monthly_cost = 100.0
+        annual_cost = calculate_annual_cost(monthly_cost)
+        self.assertEqual(annual_cost, 1200.0)
 
-    def test_azure_calculation(self):
-        calculator = CostCalculator("azure")
-        calculator.price_data = [
-            {"service": "virtualMachines", "region": "eastus", "instance": "B1ls", "price": 0.005}
-        ]
-        result = calculator.calculate("virtualMachines", "eastus", 720, 1)
-        self.assertEqual(result['total_cost'], 0.005 * 720)
-
-    def test_gcp_calculation(self):
-        calculator = CostCalculator("gcp")
-        calculator.price_data = [
-            {"service": "compute", "region": "us-east1", "instance": "e2-micro", "price": 0.0076}
-        ]
-        result = calculator.calculate("compute", "us-east1", 720, 1)
-        self.assertEqual(result['total_cost'], 0.0076 * 720)
-
-    def test_service_not_found(self):
-        calculator = CostCalculator("aws")
-        calculator.price_data = []
-        result = calculator.calculate("ec2", "us-east-1", 720, 1)
-        self.assertIn("error", result)
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
