@@ -1,23 +1,45 @@
-from backend.middleware.cache import get_redis_client
-from backend.api import get_aws_prices, get_azure_prices, get_gcp_prices
+#!/usr/bin/env python3
+"""
+Database initialization script for CloudCost Compass
+This script would typically set up a database with pricing information
+For now, it just validates the static data files
+"""
+
 import json
+import os
 
-def seed_cache():
-    redis_client = get_redis_client()
+def validate_json_files():
+    """Validate all JSON pricing files"""
+    data_dir = os.path.join(os.path.dirname(__file__), '../static_data')
+    required_files = ['aws_prices.json', 'azure_prices.json', 'gcp_prices.json']
     
-    print("Seeding AWS pricing data...")
-    aws_data = get_aws_prices()
-    redis_client.set("pricing:aws", json.dumps(aws_data))
+    for file_name in required_files:
+        file_path = os.path.join(data_dir, file_name)
+        try:
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+                print(f"✓ {file_name} is valid JSON")
+                
+                # Basic validation
+                required_sections = ['compute', 'storage', 'bandwidth']
+                for section in required_sections:
+                    if section not in data:
+                        print(f"✗ {file_name} missing section: {section}")
+                        return False
+                        
+        except json.JSONDecodeError as e:
+            print(f"✗ {file_name} contains invalid JSON: {e}")
+            return False
+        except FileNotFoundError:
+            print(f"✗ {file_name} not found")
+            return False
     
-    print("Seeding Azure pricing data...")
-    azure_data = get_azure_prices()
-    redis_client.set("pricing:azure", json.dumps(azure_data))
-    
-    print("Seeding GCP pricing data...")
-    gcp_data = get_gcp_prices()
-    redis_client.set("pricing:gcp", json.dumps(gcp_data))
-    
-    print("Cache seeding complete!")
+    return True
 
-if __name__ == "__main__":
-    seed_cache()
+if __name__ == '__main__':
+    print("Validating pricing data files...")
+    if validate_json_files():
+        print("All pricing files are valid!")
+    else:
+        print("Some pricing files are invalid!")
+        exit(1)
