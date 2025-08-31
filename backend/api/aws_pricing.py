@@ -1,13 +1,11 @@
 import json
 import os
 
-# Load AWS pricing data
 def load_aws_pricing():
     file_path = os.path.join(os.path.dirname(__file__), '../static_data/aws_prices.json')
     with open(file_path, 'r') as f:
         return json.load(f)
 
-# Calculate AWS costs based on resource requirements
 def calculate_aws_cost(resources):
     pricing_data = load_aws_pricing()
     
@@ -24,9 +22,9 @@ def calculate_aws_cost(resources):
     compute_rate = pricing_data['compute'][compute_type]['hourly']
     compute_cost = compute_hours * instances * compute_rate
     
-    # Calculate storage cost
-    storage_rate = pricing_data['storage'][storage_type]['monthly']
-    storage_cost = storage_size * storage_rate
+    # Calculate storage cost (monthly to hourly conversion)
+    storage_rate = pricing_data['storage'][storage_type]['monthly'] / 730  # Convert monthly to hourly
+    storage_cost = storage_size * storage_rate * compute_hours  # Storage cost for the duration
     
     # Calculate bandwidth cost
     bandwidth_rate = pricing_data['bandwidth']['outbound']['rate']
