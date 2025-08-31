@@ -1,8 +1,37 @@
-[
-  {
-    "service": "virtualMachines",
-    "instance": "B1ls",
-    "region": "eastus",
-    "price": 0.005
+{
+  "compute": {
+    "general": {
+      "hourly": 0.099,
+      "monthly": 72.0
+    },
+    "compute": {
+      "hourly": 0.142,
+      "monthly": 103.0
+    },
+    "memory": {
+      "hourly": 0.192,
+      "monthly": 140.0
+    }
+  },
+  "storage": {
+    "standard": {
+      "monthly": 0.025
+    },
+    "ssd": {
+      "monthly": 0.132
+    },
+    "archive": {
+      "monthly": 0.005
+    }
+  },
+  "bandwidth": {
+    "outbound": {
+      "rate": 0.087,
+      "free_tier": 100
+    },
+    "inbound": {
+      "rate": 0.0,
+      "free_tier": 0
+    }
   }
-]
+}
