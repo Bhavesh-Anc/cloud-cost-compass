@@ -1,51 +1,89 @@
 import React from 'react';
-import { Pie } from 'react-chartjs-2';
 import {
-  Chart as ChartJS,
-  ArcElement,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend
-} from 'chart.js';
-import { formatCurrency } from '../utils/helpers';
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
-
-export default function CostDashboard({ data }) {
-  if (!data) return null;
-  
-  const chartData = {
-    labels: ['Compute', 'Storage', 'Networking'],
-    datasets: [
-      {
-        data: [data.total_cost * 0.7, data.total_cost * 0.2, data.total_cost * 0.1],
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-        hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
-      }
-    ]
-  };
+const CostDashboard = ({ data }) => {
+  const chartData = [
+    { name: 'AWS', compute: data.aws.compute, storage: data.aws.storage, bandwidth: data.aws.bandwidth, total: data.aws.total },
+    { name: 'Azure', compute: data.azure.compute, storage: data.azure.storage, bandwidth: data.azure.bandwidth, total: data.azure.total },
+    { name: 'GCP', compute: data.gcp.compute, storage: data.gcp.storage, bandwidth: data.gcp.bandwidth, total: data.gcp.total }
+  ];
 
   return (
-    <div className="card">
-      <h2>Cost Breakdown</h2>
+    <div className="cost-dashboard">
+      <h2>Cost Dashboard</h2>
       
-      <div className="cost-summary">
-        <div className="summary-item">
-          <span className="label">Provider:</span>
-          <span className="value">{data.provider.toUpperCase()}</span>
+      <div className="summary-cards">
+        <div className="card aws">
+          <h3>AWS</h3>
+          <p className="cost">${data.aws.total.toFixed(2)}</p>
+          <div className="breakdown">
+            <p>Compute: ${data.aws.compute.toFixed(2)}</p>
+            <p>Storage: ${data.aws.storage.toFixed(2)}</p>
+            <p>Bandwidth: ${data.aws.bandwidth.toFixed(2)}</p>
+          </div>
         </div>
-        <div className="summary-item">
-          <span className="label">Total Cost:</span>
-          <span className="value">{formatCurrency(data.total_cost)}</span>
+        
+        <div className="card azure">
+          <h3>Azure</h3>
+          <p className="cost">${data.azure.total.toFixed(2)}</p>
+          <div className="breakdown">
+            <p>Compute: ${data.azure.compute.toFixed(2)}</p>
+            <p>Storage: ${data.azure.storage.toFixed(2)}</p>
+            <p>Bandwidth: ${data.azure.bandwidth.toFixed(2)}</p>
+          </div>
         </div>
-        <div className="summary-item">
-          <span className="label">Unit Price:</span>
-          <span className="value">{formatCurrency(data.unit_price)}/hr</span>
+        
+        <div className="card gcp">
+          <h3>GCP</h3>
+          <p className="cost">${data.gcp.total.toFixed(2)}</p>
+          <div className="breakdown">
+            <p>Compute: ${data.gcp.compute.toFixed(2)}</p>
+            <p>Storage: ${data.gcp.storage.toFixed(2)}</p>
+            <p>Bandwidth: ${data.gcp.bandwidth.toFixed(2)}</p>
+          </div>
         </div>
       </div>
-      
-      <div style={{ maxWidth: '400px', margin: '20px auto' }}>
-        <Pie data={chartData} />
+
+      <div className="chart-container">
+        <h3>Cost Comparison</h3>
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="compute" fill="#8884d8" name="Compute" />
+            <Bar dataKey="storage" fill="#82ca9d" name="Storage" />
+            <Bar dataKey="bandwidth" fill="#ffc658" name="Bandwidth" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="chart-container">
+        <h3>Total Costs</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="total" fill="#8884d8" name="Total Cost" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
-}
+};
+
+export default CostDashboard;
