@@ -38,31 +38,3 @@ def get_optimization_tips(cost_data):
     ])
     
     return tips
-
-def optimize_compute_costs(compute_usage, provider):
-    """
-    Generate compute-specific optimization recommendations
-    """
-    recommendations = []
-    
-    if compute_usage > 100:  # If using more than 100 hours
-        recommendations.append(f"Consider using reserved instances on {provider} for committed use discounts.")
-    
-    if compute_usage > 500:  # If using more than 500 hours
-        recommendations.append(f"Evaluate spot or preemptible instances on {provider} for fault-tolerant workloads.")
-    
-    return recommendations
-
-def optimize_storage_costs(storage_size, storage_type, provider):
-    """
-    Generate storage-specific optimization recommendations
-    """
-    recommendations = []
-    
-    if storage_size > 1000:  # If storing more than 1TB
-        recommendations.append(f"Consider implementing data tiering on {provider} to reduce storage costs.")
-    
-    if storage_type == 'standard' and storage_size > 500:
-        recommendations.append(f"Evaluate moving infrequently accessed data to cooler storage tiers on {provider}.")
-    
-    return recommendations

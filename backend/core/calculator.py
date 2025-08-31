@@ -1,38 +1,25 @@
-import json
-import os
+def calculate_total_cost(cost_breakdown):
+    """
+    Calculate the total cost from a cost breakdown dictionary
+    """
+    return sum(cost_breakdown.values())
 
-def load_gcp_pricing():
-    file_path = os.path.join(os.path.dirname(__file__), '../static_data/gcp_prices.json')
-    with open(file_path, 'r') as f:
-        return json.load(f)
+def calculate_monthly_cost(hourly_cost, hours_per_month=730):
+    """
+    Convert hourly cost to monthly cost
+    """
+    return hourly_cost * hours_per_month
 
-def calculate_gcp_cost(resources):
-    pricing_data = load_gcp_pricing()
-    
-    compute_hours = resources.get('compute', {}).get('hours', 0)
-    instances = resources.get('compute', {}).get('instances', 1)
-    compute_type = resources.get('compute', {}).get('type', 'general')
-    
-    storage_size = resources.get('storage', {}).get('size', 0)
-    storage_type = resources.get('storage', {}).get('type', 'standard')
-    
-    bandwidth = resources.get('bandwidth', {}).get('amount', 0)
-    
-    # Calculate compute cost
-    compute_rate = pricing_data['compute'][compute_type]['hourly']
-    compute_cost = compute_hours * instances * compute_rate
-    
-    # Calculate storage cost (monthly to hourly conversion)
-    storage_rate = pricing_data['storage'][storage_type]['monthly'] / 730
-    storage_cost = storage_size * storage_rate * compute_hours
-    
-    # Calculate bandwidth cost
-    bandwidth_rate = pricing_data['bandwidth']['outbound']['rate']
-    free_tier = pricing_data['bandwidth']['outbound']['free_tier']
-    bandwidth_cost = max(0, bandwidth - free_tier) * bandwidth_rate
-    
-    return {
-        'compute': compute_cost,
-        'storage': storage_cost,
-        'bandwidth': bandwidth_cost
-    }
+def calculate_annual_cost(monthly_cost):
+    """
+    Convert monthly cost to annual cost
+    """
+    return monthly_cost * 12
+
+def calculate_savings_percentage(original_cost, new_cost):
+    """
+    Calculate the percentage savings between two costs
+    """
+    if original_cost == 0:
+        return 0
+    return ((original_cost - new_cost) / original_cost) * 100

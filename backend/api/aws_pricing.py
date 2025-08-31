@@ -23,8 +23,8 @@ def calculate_aws_cost(resources):
     compute_cost = compute_hours * instances * compute_rate
     
     # Calculate storage cost (monthly to hourly conversion)
-    storage_rate = pricing_data['storage'][storage_type]['monthly'] / 730  # Convert monthly to hourly
-    storage_cost = storage_size * storage_rate * compute_hours  # Storage cost for the duration
+    storage_rate = pricing_data['storage'][storage_type]['monthly'] / 730
+    storage_cost = storage_size * storage_rate * compute_hours
     
     # Calculate bandwidth cost
     bandwidth_rate = pricing_data['bandwidth']['outbound']['rate']
