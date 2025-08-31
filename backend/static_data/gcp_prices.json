@@ -1,8 +1,37 @@
-[
-  {
-    "service": "compute",
-    "instance": "e2-micro",
-    "region": "us-east1",
-    "price": 0.0076
+{
+  "compute": {
+    "general": {
+      "hourly": 0.089,
+      "monthly": 65.0
+    },
+    "compute": {
+      "hourly": 0.132,
+      "monthly": 96.0
+    },
+    "memory": {
+      "hourly": 0.182,
+      "monthly": 132.0
+    }
+  },
+  "storage": {
+    "standard": {
+      "monthly": 0.020
+    },
+    "ssd": {
+      "monthly": 0.120
+    },
+    "archive": {
+      "monthly": 0.004
+    }
+  },
+  "bandwidth": {
+    "outbound": {
+      "rate": 0.085,
+      "free_tier": 100
+    },
+    "inbound": {
+      "rate": 0.0,
+      "free_tier": 0
+    }
   }
-]
+}
