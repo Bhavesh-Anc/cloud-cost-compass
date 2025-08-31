@@ -1,38 +1,28 @@
 import unittest
-from backend.core.optimizer import CostOptimizer
+from backend.core.optimizer import get_optimization_tips, optimize_compute_costs, optimize_storage_costs
 
-class TestCostOptimizer(unittest.TestCase):
-    def test_reserved_instance_suggestion(self):
-        # Long running instance should get RI suggestion
-        config = {
-            "provider": "aws",
-            "service": "ec2",
-            "region": "us-east-1",
-            "hours": 8000,  # ~1 year
-            "quantity": 1
+class TestOptimizer(unittest.TestCase):
+    def test_get_optimization_tips(self):
+        cost_data = {
+            'aws': {'total': 100.0},
+            'azure': {'total': 120.0},
+            'gcp': {'total': 90.0}
         }
-        optimizer = CostOptimizer(config)
-        suggestions = optimizer.generate_suggestions()
-        self.assertTrue(any(s['type'] == 'reserved_instance' for s in suggestions))
+        
+        tips = get_optimization_tips(cost_data)
+        self.assertIsInstance(tips, list)
+        self.assertGreater(len(tips), 0)
+        self.assertIn('GCP', tips[0])  # Should recommend GCP as cheapest
+    
+    def test_optimize_compute_costs(self):
+        recommendations = optimize_compute_costs(200, 'AWS')
+        self.assertIsInstance(recommendations, list)
+        self.assertGreater(len(recommendations), 0)
+    
+    def test_optimize_storage_costs(self):
+        recommendations = optimize_storage_costs(1500, 'standard', 'AWS')
+        self.assertIsInstance(recommendations, list)
+        self.assertGreater(len(recommendations), 0)
 
-    def test_region_change_suggestion(self):
-        # If current region is not the cheapest, suggest change
-        config = {
-            "provider": "aws",
-            "service": "ec2",
-            "region": "us-west-1",  # Assuming this is more expensive
-            "hours": 720,
-            "quantity": 1
-        }
-        optimizer = CostOptimizer(config)
-        # Mock region prices
-        optimizer.region_prices = {
-            "us-east-1": 0.01,
-            "us-west-1": 0.02
-        }
-        suggestions = optimizer.generate_suggestions()
-        self.assertTrue(any(s['type'] == 'region_change' for s in suggestions))
-        self.assertEqual(suggestions[0]['recommended_region'], 'us-east-1')
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
