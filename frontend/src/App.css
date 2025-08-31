@@ -1,0 +1,44 @@
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+}
+
+.App-header nav {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.App-header button {
+  background-color: #61dafb;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.App-header button:hover {
+  background-color: #4fa8c5;
+}
+
+.App-header button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.App-header button.active {
+  background-color: #21a1c4;
+}
+
+main {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}

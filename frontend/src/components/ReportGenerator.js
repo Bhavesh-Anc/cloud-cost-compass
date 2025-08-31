@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { generateReport } from '../services/api';
 import './ReportGenerator.css';
 
 const ReportGenerator = ({ data }) => {
