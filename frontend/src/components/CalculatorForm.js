@@ -1,13 +1,38 @@
 import React, { useState } from 'react';
 import { calculateCost } from '../services/api';
+import './CalculatorForm.css';
 
 const CalculatorForm = ({ onCalculate }) => {
   const [formData, setFormData] = useState({
-    compute: { hours: 0, instances: 0, type: 'general' },
-    storage: { size: 0, type: 'standard' },
-    bandwidth: { amount: 0 }
+    compute: { hours: 720, instances: 1, type: 'general' },
+    storage: { size: 100, type: 'standard' },
+    bandwidth: { amount: 50 }
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (formData.compute.hours < 0) {
+      newErrors.computeHours = "Hours cannot be negative";
+    }
+    
+    if (formData.compute.instances < 1) {
+      newErrors.computeInstances = "At least one instance is required";
+    }
+    
+    if (formData.storage.size < 0) {
+      newErrors.storageSize = "Storage size cannot be negative";
+    }
+    
+    if (formData.bandwidth.amount < 0) {
+      newErrors.bandwidth = "Bandwidth cannot be negative";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (category, field, value) => {
     setFormData(prev => ({
@@ -21,6 +46,11 @@ const CalculatorForm = ({ onCalculate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
     try {
       const result = await calculateCost(formData);
@@ -41,13 +71,15 @@ const CalculatorForm = ({ onCalculate }) => {
           <h3>Compute Resources</h3>
           <div className="input-group">
             <label>
-              Instance Hours:
+              Instance Hours (per month):
               <input
                 type="number"
                 value={formData.compute.hours}
-                onChange={(e) => handleInputChange('compute', 'hours', parseInt(e.target.value))}
+                onChange={(e) => handleInputChange('compute', 'hours', parseInt(e.target.value) || 0)}
                 min="0"
+                className={errors.computeHours ? 'error' : ''}
               />
+              {errors.computeHours && <span className="error-text">{errors.computeHours}</span>}
             </label>
           </div>
           <div className="input-group">
@@ -56,9 +88,11 @@ const CalculatorForm = ({ onCalculate }) => {
               <input
                 type="number"
                 value={formData.compute.instances}
-                onChange={(e) => handleInputChange('compute', 'instances', parseInt(e.target.value))}
-                min="0"
+                onChange={(e) => handleInputChange('compute', 'instances', parseInt(e.target.value) || 1)}
+                min="1"
+                className={errors.computeInstances ? 'error' : ''}
               />
+              {errors.computeInstances && <span className="error-text">{errors.computeInstances}</span>}
             </label>
           </div>
           <div className="input-group">
@@ -84,9 +118,11 @@ const CalculatorForm = ({ onCalculate }) => {
               <input
                 type="number"
                 value={formData.storage.size}
-                onChange={(e) => handleInputChange('storage', 'size', parseInt(e.target.value))}
+                onChange={(e) => handleInputChange('storage', 'size', parseInt(e.target.value) || 0)}
                 min="0"
+                className={errors.storageSize ? 'error' : ''}
               />
+              {errors.storageSize && <span className="error-text">{errors.storageSize}</span>}
             </label>
           </div>
           <div className="input-group">
@@ -108,13 +144,15 @@ const CalculatorForm = ({ onCalculate }) => {
           <h3>Bandwidth</h3>
           <div className="input-group">
             <label>
-              Data Transfer (GB):
+              Data Transfer (GB outbound):
               <input
                 type="number"
                 value={formData.bandwidth.amount}
-                onChange={(e) => handleInputChange('bandwidth', 'amount', parseInt(e.target.value))}
+                onChange={(e) => handleInputChange('bandwidth', 'amount', parseInt(e.target.value) || 0)}
                 min="0"
+                className={errors.bandwidth ? 'error' : ''}
               />
+              {errors.bandwidth && <span className="error-text">{errors.bandwidth}</span>}
             </label>
           </div>
         </div>
