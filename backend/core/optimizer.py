@@ -18,13 +18,23 @@ def get_optimization_tips(cost_data):
     else:
         tips.append("GCP appears to be the most cost-effective option for your workload.")
     
+    # Add provider-specific optimization tips
+    if aws_cost > cheapest * 1.2:  # If AWS is more than 20% more expensive
+        tips.append("Consider using AWS Reserved Instances for long-term workloads to save up to 40%.")
+    
+    if azure_cost > cheapest * 1.2:  # If Azure is more than 20% more expensive
+        tips.append("Azure Hybrid Benefit could save you money if you have existing Windows Server licenses.")
+    
+    if gcp_cost > cheapest * 1.2:  # If GCP is more than 20% more expensive
+        tips.append("GCP Sustained Use Discounts automatically apply when you use instances for a significant portion of the billing month.")
+    
     # Add general optimization tips
     tips.extend([
-        "Consider using reserved instances for long-term workloads to save up to 40%.",
-        "Evaluate spot instances for fault-tolerant workloads to reduce compute costs.",
+        "Consider using spot/preemptible instances for fault-tolerant workloads to reduce compute costs.",
         "Implement auto-scaling to match resource allocation with demand.",
         "Use storage lifecycle policies to automatically move infrequently accessed data to cheaper storage tiers.",
-        "Monitor and clean up unused resources regularly."
+        "Monitor and clean up unused resources regularly.",
+        "Consider using CDN services to reduce bandwidth costs for content delivery."
     ])
     
     return tips
