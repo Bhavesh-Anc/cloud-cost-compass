@@ -1,0 +1,8 @@
+[
+  {
+    "service": "compute",
+    "instance": "e2-micro",
+    "region": "us-east1",
+    "price": 0.0076
+  }
+]
